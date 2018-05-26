@@ -21,7 +21,7 @@
 #
 # Copyright 2016 Michael Brown, updated by Kelly Parks
 #           Based on prior work by Sean Donovan, 2015
-			    												
+                                                                
 
 from Message import *
 from StpSwitch import *
