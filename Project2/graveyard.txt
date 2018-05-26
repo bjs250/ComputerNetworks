@@ -1,0 +1,67 @@
+ if self.debugMode == True and self.switchID == 12:
+            print("receive:", "root", message.root, "dist", message.distance, "origin", message.origin, "dest", message.destination, message.pathThrough)
+
+        if  message.distance == -1 and message.origin != self.switchthrough:
+            if message.origin in self.active_links:
+                self.active_links.remove(message.origin)
+            if self.debugMode == True:
+                print("update (special receive)", self.switchID, self.root, self.distance, self.active_links, self.switchthrough)
+
+
+        elif message.root < self.root:
+            self.root = message.root
+            self.distance = message.distance + 1
+            if message.origin not in self.active_links:
+                self.active_links.append(message.origin)
+            self.switchthrough = message.origin
+            
+            if self.debugMode == True:
+                print("update (msg.root < self.root)", self.switchID, self.root, self.distance, self.active_links, self.switchthrough)
+            
+            for neighbor in self.links:
+                if neighbor == self.switchthrough:
+                    paththru = True
+                else:
+                    paththru = False
+
+                msg = Message(claimedRoot=self.root, distanceToRoot=self.distance, originID=self.switchID, destinationID=neighbor, pathThrough=paththru)
+                if self.debugMode == True and 0:
+                    print("send:", "root", self.root, "dist", self.distance, "origin", self.switchID, "dest", neighbor, paththru)
+                self.send_message(msg)
+
+                
+        elif (message.distance+1) < self.distance:
+            self.distance = message.distance + 1
+            if message.origin not in self.active_links:
+                self.active_links.append(message.origin)
+            self.switchthrough = message.origin
+            
+            if self.debugMode == True:
+                print("update (msg.dist < root.dist)", self.switchID, self.root, self.distance, self.active_links, self.switchthrough)
+            
+        elif message.pathThrough == True and message.origin not in self.active_links:
+            self.active_links.append(message.origin)
+            
+            if self.debugMode == True:
+                print("update (paththru = True)", self.switchID, self.root, self.distance, self.active_links, self.switchthrough)
+
+        elif message.origin < self.switchthrough and (message.root == self.root) and (message.distance+1) == self.distance:
+            self.active_links.remove(self.switchthrough)
+            
+            if self.debugMode == True:
+                print("special send:", "root", self.root, "dist", -1, "origin", self.switchID, "dest", self.switchthrough, False)
+            msg = Message(claimedRoot=self.root, distanceToRoot= -1, originID=self.switchID, destinationID=self.switchthrough, pathThrough=False)
+            
+            self.send_message(msg)
+
+            self.switchthrough = message.origin
+            
+            if self.debugMode == True:
+                print("update (msg.origin < self.switchthrough)", self.switchID, self.root, self.distance, self.active_links, self.switchthrough)
+
+        elif message.pathThrough is False and self.switchID != message.origin and message.origin in self.active_links:
+            self.active_links.remove(message.origin)
+            print("special send:", "root", self.root, "dist", -1, "origin", self.switchID, "dest", message.origin, False)
+            msg = Message(claimedRoot=self.root, distanceToRoot= -1, originID=self.switchID, destinationID=message.origin, pathThrough=False)
+            self.send_message(msg)
+
