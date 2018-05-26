@@ -41,7 +41,7 @@ class Switch(StpSwitch):
         self.switchthrough = self.switchID
         
         # Set debug flag for console output (should be set to False during grading)
-        self.debugMode = True
+        self.debugMode = False
 
     def send_initial_messages(self):
         
@@ -125,6 +125,18 @@ class Switch(StpSwitch):
             self.active_links.remove(message.origin)
             if self.debugMode == True:
                 print("update " + str(self.switchID) + " (tiebreaker resolution) from " + str(message.origin), self.switchID, self.root, self.distance, self.active_links, self.switchthrough)
+
+        """
+            Corner condition: this is a rare occurence observed in Tailtopo and similar topologies where switch needs to remove an dead activelink (similar to tiebreaker resolution)
+        """
+        if message.root == self.root and (message.distance+1) == self.distance and (message.origin != self.switchthrough and message.pathThrough == False) and message.origin in self.active_links:
+            self.active_links.remove(message.origin)
+            if self.debugMode == True:
+                print("update " + str(self.switchID) + " (corner) from " + str(message.origin), self.switchID, self.root, self.distance, self.active_links, self.switchthrough)
+
+            
+
+
         
     def generate_logstring(self):
         #TODO: This function needs to return a logstring for this particular switch.  The
@@ -138,14 +150,10 @@ class Switch(StpSwitch):
         #      for switch 2 would have the following text:
         #      2 - 1, 2 - 3
         #      A full example of a valid output file is included (sample_output.txt) with the project skeleton.
-        
         returnString = ""
         self.active_links =  sorted(self.active_links)
-        
-        # print to console
         if self.debugMode == True:
             print(self.switchID, self.active_links)
-        
         for index,neighbor in enumerate(self.active_links):
             if index != (len(self.active_links)-1):
                 returnString = returnString + str(self.switchID) + " - " + str(neighbor) + ", "
